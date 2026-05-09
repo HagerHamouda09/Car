@@ -4,6 +4,6 @@
 
 void Hall_Init();
 
-float Calc_Speed();
+void Calc_Speed();
 
 float Get_Speed();

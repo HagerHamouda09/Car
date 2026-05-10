@@ -33,5 +33,15 @@ float Get_Distance()
   //distance in cm
   distance = (speed * duration)/2;
   return distance;
+}
+
+int Obstacle(){ //1 <=20 & 2<60 >20 & 3 safe
+  if(Get_Distance()<=20)
+    return 1;
+  if(Get_Distance() < 60 && Get_Distance() > 20)
+    return 2;
+  else 
+    return 3;
 
 }
+

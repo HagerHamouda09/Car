@@ -1,94 +1,108 @@
 #include "config.h"
-
 #include "Motor.h"
 #include "Relay.h"
 #include "Button.h"
 #include "Buzzer.h"
 #include "Servo.h"
 #include "Hall.h"
+#include "MPU.h"
+#include "Ultrasonic.h"
+
+SYSTEM_CASES systemState = SYSTEM_IDLE;
 
 void setup() {
   Serial.begin(115200);
-  delay(1000); // give time for serial monitor
-
+  delay(1000);
   Serial.println("ESP32 is running!");
-  
   Motor_Init();
   Relay_Init();
-  // Button_Init();
-  // Buzzer_Init();
-  // Servo_Init();
+  Button_Init();
+  Buzzer_Init();
+  Servo_Init();
   Hall_Init();
-
-
+  MPU_init();
+  Ultrasonic_Init();
 }
 
+void ControlSpeed(int x, int y) {
+  if (x == 1) {
+    Set_Motor_Speed(150);
+    Set_Motor_Speed(75);
+    Set_Motor_Speed(0);
+    if (Crash_Detect()) {
+      systemState = SYSTEM_CRASH;
+    }
+  }
+
+  else if (x == 2) {
+    for (int i = 1; i <= 5; i++) {
+      Set_Motor_Speed(250 - (50 * i));
+      if (Crash_Detect()) {
+        systemState = SYSTEM_CRASH;
+        break;
+      }
+      delay(1000);
+    }
+  }
+
+  else if (y == 1)
+    systemState = SYSTEM_SAFESTOP;
+}
+
+
+
 void loop() {
-//   Serial.println("Loop working...");
+  systemState = SYSTEM_NORMAL;
 
-//MOTOR TEST
-//   Relay_ON();
-//   delay(200);
-//   Set_Motor_Speed(150);
-//   delay(5000);
+  switch (systemState) {
+    case SYSTEM_IDLE:
+      break;
 
-//   Set_Left_Motor_Speed(250);
-// Set_Right_Motor_Speed(0);
+    case SYSTEM_NORMAL:
+      Relay_ON();
+      Set_Motor_Speed(250);
+      while (!Crash_Detect() && Get_Speed() != 0 && Obstacle() == 3) {
+        Calc_Speed();
+        delay(2000);
+      }
+      if (Crash_Detect()) {
+        systemState = SYSTEM_CRASH;
+        break;
+      }
+      if (Get_Speed() == 0) {
+        systemState = SYSTEM_SAFESTOP;
+        break;
+      }
+      ControlSpeed(Obstacle(), 1);
+      break;
 
-//    delay(5000);
-//    Set_Right_Motor_Speed(250);
-//    Set_Left_Motor_Speed(0);
-//   delay(5000);
+    case SYSTEM_SAFESTOP:
+      if (Get_Speed() > 0)
+        systemState = SYSTEM_NORMAL;
+      break;
 
-///////////////////////////////////////////////////////////
+    case SYSTEM_CRASH:
+      Set_Motor_Speed(0);
+      Relay_Off();
+      Buzzer_On();
+      //INFORM MOBILE THERE IS A CRASH
+      break;
 
-//BUTTON TEST
+    case SYSTEM_EMERGENCY:
+      Set_Servo_Angle(110);
+      if (Get_Button_State()) {
 
-// if(Get_Button_State()){
-//   Serial.println("button pressed");
-// }
-// else
-// {  Serial.println("Nottttttt");
-// }
+        //mafesh obstacle+aw2f
+        if (Obstacle() == 3)
+          ControlSpeed(2, 0);
+        else
+          //obstacle +aw2f basor3a
+          //obstacle +aw2f blraha
+          controlSpeed(Obstacle(), 0);
+      }
+      Relay_Off();
+      Buzzer_On();
 
-//////////////////////////////////////////////////////////////
-
-//BUZZER TEST
-
-  // Buzzer_On();
-  // delay(500);
-  // Buzzer_Off();
-
-//////////////////////////////////////////////////////////////
-
-// //Servo test
-// Set_Servo_Angle(0);
-// delay(2000);
-
-// Set_Servo_Angle(90);
-// delay(2000);
-
-// Set_Servo_Angle(180);
-// delay(2000);
-
-///////////////////////////////////////////////////////////////
-
-// //Hall test
-
-Relay_ON();
-delay(200);
-
-Set_Motor_Speed(150);
-
-Calc_Speed();
-
-Serial.print("Pulses: ");
-Serial.println(HallPulseCount);
-
-Serial.print("RPM: ");
-Serial.println(Get_Speed());
-
-delay(200);
-
-
+      break;
+  }
 }

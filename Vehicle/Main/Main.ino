@@ -10,6 +10,7 @@
 
 SYSTEM_CASES systemState = SYSTEM_IDLE;
 
+
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -26,6 +27,7 @@ void setup() {
 
 void ControlSpeed(int x, int y) {
   if (x == 1) {
+    Serial.print("reducing speed suddenly");
     Set_Motor_Speed(150);
     Set_Motor_Speed(75);
     Set_Motor_Speed(0);
@@ -36,6 +38,7 @@ void ControlSpeed(int x, int y) {
 
   else if (x == 2) {
     for (int i = 1; i <= 5; i++) {
+      Serial.print("reducing speed ");
       Set_Motor_Speed(250 - (50 * i));
       if (Crash_Detect()) {
         systemState = SYSTEM_CRASH;
@@ -62,15 +65,19 @@ void loop() {
       Relay_ON();
       Set_Motor_Speed(250);
       while (!Crash_Detect() && Get_Speed() != 0 && Obstacle() == 3) {
+        Serial.print("normal");
         Calc_Speed();
         delay(2000);
       }
       if (Crash_Detect()) {
         systemState = SYSTEM_CRASH;
+        Serial.print("crash detected");
         break;
       }
       if (Get_Speed() == 0) {
         systemState = SYSTEM_SAFESTOP;
+        Serial.print("safe stop");
+
         break;
       }
       ControlSpeed(Obstacle(), 1);
@@ -86,10 +93,13 @@ void loop() {
       Relay_Off();
       Buzzer_On();
       //INFORM MOBILE THERE IS A CRASH
+      //flag to stop loop
+      //sleep mode for esp
       break;
 
     case SYSTEM_EMERGENCY:
       Set_Servo_Angle(110);
+      
       if (Get_Button_State()) {
 
         //mafesh obstacle+aw2f
@@ -98,7 +108,7 @@ void loop() {
         else
           //obstacle +aw2f basor3a
           //obstacle +aw2f blraha
-          controlSpeed(Obstacle(), 0);
+          ControlSpeed(Obstacle(), 0);
       }
       Relay_Off();
       Buzzer_On();

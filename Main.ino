@@ -7,6 +7,7 @@
 #include "Hall.h"
 #include "MPU.h"
 #include "Ultrasonic.h"
+#include "BLE.h"
 
 // SYSTEM_CASES systemState = SYSTEM_IDLE;
 SYSTEM_CASES systemState = SYSTEM_NORMAL;
@@ -25,6 +26,7 @@ void setup() {
   Hall_Init();
   MPU_init();
   Ultrasonic_Init();
+  bleCar.begin();
 }
 
 void ControlSpeed(int x, int y) {
@@ -79,7 +81,10 @@ void loop() {
       int obs = Obstacle();
       int speed = Get_Speed();
       int crash = Crash_Detect();
+      int distance = Get_Distance();
   
+  bleCar.sendTelemetry(systemState, speed, distance);
+
   switch (systemState) {
     case SYSTEM_IDLE:
       break;
@@ -98,7 +103,7 @@ void loop() {
       // Serial.println(crash);
       // Serial.println("DO WE HAVE A CRASH??");
 
-      while (!crash && speed != 0 && obs== 3) {
+      while (systemState == SYSTEM_NORMAL && !crash && speed != 0 && obs== 3) {
           
                  motorLocked = false;
                 Set_Motor_Speed(250);
@@ -106,9 +111,13 @@ void loop() {
       obs = Obstacle();
       speed = Get_Speed();
       crash = Crash_Detect();
+      distance = Get_Distance();
       
         Serial.print("normal");
         Calc_Speed();
+
+        bleCar.sendTelemetry(systemState, speed, distance);
+
         delay(60);
       }
       if (crash) {
@@ -166,7 +175,7 @@ void loop() {
       break;
 
     case SYSTEM_EMERGENCY:
-      Set_Servo_Angle(110);
+            Set_Servo_Angle(110);
       
       if (Get_Button_State()) {
         motorLocked = false;
@@ -185,5 +194,4 @@ void loop() {
       break;
   }
 }
-
 

@@ -20,7 +20,10 @@ float Get_Distance()
 {
   long duration;
   float distance;
-  //trigger ultrasonic with a pulse to send ultrasonic waves
+
+  digitalWrite(TRIG,LOW);
+  delayMicroseconds(2);
+    //trigger ultrasonic with a pulse to send ultrasonic waves
   digitalWrite(TRIG,HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG,LOW);
@@ -36,12 +39,13 @@ float Get_Distance()
 }
 
 int Obstacle(){ //1 <=20 & 2<60 >20 & 3 safe
-  if(Get_Distance()<=20)
+float distance= Get_Distance();
+// Serial.println(distance);
+  if(distance <= 20)
     return 1;
-  if(Get_Distance() < 60 && Get_Distance() > 20)
+  else if(distance <= 60)
     return 2;
   else 
     return 3;
 
 }
-

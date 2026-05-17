@@ -1,6 +1,4 @@
 // PINS
-#ifndef CONFIG_H
-#define CONFIG_H
 
 //Motor Driver Pins
 #define A01     26
@@ -13,14 +11,7 @@
 
 #define STBY    32
 
-//Left Channel
-#define PWMA_Channel    0
 
-//Right Channel
-#define PWMB_Channel    1
-
-#define Frequency   10000
-#define Resolution  8
 //Sensor PINS
 
 //ULTRASONIC
@@ -45,15 +36,3 @@
 //MPU
 #define SDA     21
 #define SCL     22
-
-
-typedef enum {
-    SYSTEM_IDLE,
-    SYSTEM_NORMAL,
-    SYSTEM_CRASH,
-    SYSTEM_EMERGENCY,
-    SYSTEM_OBSTACLESTOP,
-    SYSTEM_SAFESTOP//CAR JUST STOPPED NO ISSUES 
-} SYSTEM_CASES;
-
-#endif

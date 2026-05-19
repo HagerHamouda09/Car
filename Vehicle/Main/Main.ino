@@ -7,11 +7,14 @@
 #include "Hall.h"
 #include "MPU.h"
 #include "Ultrasonic.h"
+#include "BLE.h"
 
 // SYSTEM_CASES systemState = SYSTEM_IDLE;
 SYSTEM_CASES systemState = SYSTEM_NORMAL;
 
 bool motorLocked = false;
+
+int Trials = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -25,6 +28,7 @@ void setup() {
   Hall_Init();
   MPU_init();
   Ultrasonic_Init();
+  bleCar.begin();
 }
 
 void ControlSpeed(int x, int y) {
@@ -60,6 +64,7 @@ void ControlSpeed(int x, int y) {
   // 0 is safe
   if (y == 1)
   {
+    Serial.println("OBBBBBBBSTT");
     systemState = SYSTEM_OBSTACLESTOP;
 
   }
@@ -79,17 +84,31 @@ void loop() {
       int obs = Obstacle();
       int speed = Get_Speed();
       int crash = Crash_Detect();
+      int distance = Get_Distance();
   
+  bleCar.sendTelemetry(systemState, speed, distance);
+
   switch (systemState) {
     case SYSTEM_IDLE:
+    //this delay represents the wait state in the state machine if the vitals were not ok
+      delay(5000);
+
+      
+      break;
+
+    case SYSTEM_READY:
+      Relay_ON();
       break;
 
     case SYSTEM_NORMAL:{
-      Relay_ON();
-      if (!motorLocked)
-      {
-      Set_Motor_Speed(250);
-      }      
+      // Relay_ON();
+      // if (!motorLocked)
+      // {
+      // Set_Motor_Speed(250);
+      // }      
+
+                 motorLocked = false;
+                Set_Motor_Speed(250);
 
       // Serial.println(speed);
       // Serial.println(obs);
@@ -106,9 +125,13 @@ void loop() {
       obs = Obstacle();
       speed = Get_Speed();
       crash = Crash_Detect();
+      distance = Get_Distance();
       
         Serial.print("normal");
         Calc_Speed();
+
+        bleCar.sendTelemetry(systemState, speed, distance);
+
         delay(60);
       }
       if (crash) {
@@ -166,10 +189,11 @@ void loop() {
       break;
 
     case SYSTEM_EMERGENCY:
-      Set_Servo_Angle(110);
+            Set_Servo_Angle(110);
       
-      if (Get_Button_State()) {
-        motorLocked = false;
+      if (Get_Button_State()) 
+      {
+        motorLocked = true;
 
         //mafesh obstacle+aw2f (emergecncy)
         if (obs == 3)
@@ -178,12 +202,10 @@ void loop() {
           //obstacle +aw2f basor3a
           //obstacle +aw2f blraha
           ControlSpeed(obs, 1);
-      }
+      
       Relay_Off();
       Buzzer_On();
-
+      }
       break;
   }
 }
-
-

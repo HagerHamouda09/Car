@@ -54,10 +54,23 @@ void Motor_Stop()
 
 void Turn_Left()
 {
+    digitalWrite(A01, HIGH);
+    digitalWrite(A02, LOW);
+
+    digitalWrite(B01, LOW);
+    digitalWrite(B02, HIGH);
+
 
 }
 
-void Turn_Right();
+void Turn_Right()
+{
+    digitalWrite(A01, LOW);
+    digitalWrite(A02, HIGH);
+    
+    digitalWrite(B01, HIGH);
+    digitalWrite(B02, LOW);
+}
 
 void Set_Motor_Speed(int Speed)
 {

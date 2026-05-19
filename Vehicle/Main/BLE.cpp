@@ -1,50 +1,83 @@
-#include "BLECar.h"
+// BLE.cpp
+
+#include "BLE.h"
 
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
-// ---------------- UUIDs ----------------
-#define SERVICE_UUID        "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
-#define CHARACTERISTIC_UUID "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 
-// ---------------- GLOBAL POINTER ----------------
-static BLECharacteristic *pCharacteristic;
+extern Trials;
+// --------------------------------------------------
+// Global BLE pointers
+// --------------------------------------------------
+static BLECharacteristic *pRxCharacteristic = nullptr;
+static BLECharacteristic *pTxCharacteristic = nullptr;
 static BLECar *instancePtr = nullptr;
 
-// ---------------- CALLBACK: CONNECTION ----------------
+// --------------------------------------------------
+#define TELEMETRY_INTERVAL_MS 500
+
+// --------------------------------------------------
+// CONNECTION CALLBACKS
+// --------------------------------------------------
 class CarServerCallbacks : public BLEServerCallbacks {
-    void onConnect(BLEServer* pServer) {
-        if (instancePtr) instancePtr->deviceConnected = true;
+
+    void onConnect(BLEServer* pServer) override {
+        if (instancePtr) {
+            instancePtr->deviceConnected = true;
+        }
+
+        Serial.println("[BLE] Phone connected");
     }
 
-    void onDisconnect(BLEServer* pServer) {
-        if (instancePtr) instancePtr->deviceConnected = false;
+    void onDisconnect(BLEServer* pServer) override {
+        if (instancePtr) {
+            instancePtr->deviceConnected = false;
+        }
+
+        Serial.println("[BLE] Phone disconnected");
+
         BLEDevice::startAdvertising();
     }
 };
 
-// ---------------- CALLBACK: DATA RECEIVED ----------------
+// --------------------------------------------------
+// RX CALLBACK
+// --------------------------------------------------
 class CarCharacteristicCallbacks : public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *characteristic) {
-        std::string value = characteristic->getValue();
+
+    void onWrite(BLECharacteristic *characteristic) override {
+
+        // ESP32 BLE library returns Arduino String
+        String value = characteristic->getValue();
 
         if (value.length() > 0) {
+
             char cmd = value[0];
+
+            Serial.print("[BLE] RX Command: ");
+            Serial.println(cmd);
+
             BLECar::handleCommand(cmd);
         }
     }
 };
 
-// ---------------- CONSTRUCTOR ----------------
+// --------------------------------------------------
+// CONSTRUCTOR
+// --------------------------------------------------
 BLECar::BLECar() {
     deviceConnected = false;
     instancePtr = this;
 }
 
-// ---------------- INIT BLE ----------------
+// --------------------------------------------------
+// BLE INIT
+// --------------------------------------------------
 void BLECar::begin() {
+
     BLEDevice::init("ESP32_CAR");
 
     BLEServer *server = BLEDevice::createServer();
@@ -52,79 +85,222 @@ void BLECar::begin() {
 
     BLEService *service = server->createService(SERVICE_UUID);
 
-    pCharacteristic = service->createCharacteristic(
-        CHARACTERISTIC_UUID,
-        BLECharacteristic::PROPERTY_WRITE
+    // ---------------- RX CHARACTERISTIC ----------------
+    // Phone writes commands here
+    pRxCharacteristic = service->createCharacteristic(
+        RX_CHAR_UUID,
+        BLECharacteristic::PROPERTY_WRITE |
+        BLECharacteristic::PROPERTY_WRITE_NR
     );
 
-    pCharacteristic->setCallbacks(new CarCharacteristicCallbacks());
+    pRxCharacteristic->setCallbacks(
+        new CarCharacteristicCallbacks()
+    );
 
+    // ---------------- TX CHARACTERISTIC ----------------
+    // ESP32 sends telemetry here
+    pTxCharacteristic = service->createCharacteristic(
+        TX_CHAR_UUID,
+        BLECharacteristic::PROPERTY_NOTIFY
+    );
+
+    pTxCharacteristic->addDescriptor(new BLE2902());
+
+    // --------------------------------------------------
     service->start();
 
     BLEAdvertising *advertising = BLEDevice::getAdvertising();
+
+    advertising->addServiceUUID(SERVICE_UUID);
+    advertising->setScanResponse(true);
     advertising->start();
 
-    Serial.println("BLE Car Module Started");
+    Serial.println("[BLE] BLE Started");
+    Serial.println("[BLE] Device Name: ESP32_CAR");
 }
 
-// ---------------- COMMAND HANDLER ----------------
-void BLECar::handleCommand(char cmd) {
-    switch (cmd) {
+// --------------------------------------------------
+// SEND TELEMETRY
+// --------------------------------------------------
+void BLECar::sendTelemetry(
+    SYSTEM_CASES state
+    // float speed,
+    // float distance
+) {
 
-        case 'F':
-            Serial.println("Forward");
-            // TODO: call your motor function
-            // moveForward();
+    if (!deviceConnected) {
+        return;
+    }
+
+    static unsigned long lastSend = 0;
+
+    unsigned long now = millis();
+
+    if (now - lastSend < TELEMETRY_INTERVAL_MS) {
+        return;
+    }
+
+    lastSend = now;
+
+    // --------------------------------------------------
+    // Convert enum state to string
+    // --------------------------------------------------
+    const char* stateStr;
+
+    switch (state) {
+
+        case SYSTEM_IDLE:
+            stateStr = "IDLE";
             break;
 
-        case 'B':
-            Serial.println("Backward");
-            // moveBackward();
+        case SYSTEM_NORMAL:
+            stateStr = "NORMAL";
             break;
 
-        case 'L':
-            Serial.println("Left");
-            // turnLeft();
+        case SYSTEM_CRASH:
+            stateStr = "CRASH";
             break;
 
-        case 'R':
-            Serial.println("Right");
-            // turnRight();
+        case SYSTEM_EMERGENCY:
+            stateStr = "EMERGENCY";
             break;
 
-        case 'S':
-            Serial.println("Stop");
-            // stopCar();
+        case SYSTEM_OBSTACLESTOP:
+            stateStr = "OBSTACLE";
+            break;
+
+        case SYSTEM_SAFESTOP:
+            stateStr = "SAFESTOP";
             break;
 
         default:
-            Serial.println("Unknown CMD");
+            stateStr = "UNKNOWN";
+            break;
+    }
+
+    // --------------------------------------------------
+    // Build telemetry packet
+    // --------------------------------------------------
+    char buffer[64];
+
+    snprintf(
+        buffer,
+        sizeof(buffer),
+        // "STATE:%s,SPD:%.1f,DIST:%.1f\n",
+        "STATE:%s\n",
+
+        stateStr
+        // speed,
+        // distance
+    );
+
+    // --------------------------------------------------
+    // Notify phone
+    // --------------------------------------------------
+    pTxCharacteristic->setValue((uint8_t*)buffer, strlen(buffer));
+    pTxCharacteristic->notify();
+
+    Serial.print("[BLE] TX -> ");
+    Serial.println(buffer);
+}
+
+// --------------------------------------------------
+// HANDLE COMMANDS
+// --------------------------------------------------
+void BLECar::handleCommand(char cmd) {
+
+    switch (cmd) {
+
+        // ----------------------------------------------
+        // EMERGENCY
+        // ----------------------------------------------
+        case 'P':
+        
+            systemState = SYSTEM_READY;
+            
+            Serial.println("[BLE] SYSTEM_READY");
+
+            break;
+        
+        case 'F'
+
+            Trials++;
+            if(Trials>=MaxTrials)
+                {
+                    
+                }
+        
+        case 'E':
+
+            systemState = SYSTEM_EMERGENCY;
+
+            Serial.println("[BLE] SYSTEM_EMERGENCY");
+
+            break;
+        
+
+        
+
+
+        // // ----------------------------------------------
+        // // RESET AFTER CRASH
+        // // ----------------------------------------------
+        // case 'R':
+
+        //     // motorLocked = false;
+        //     systemState = SYSTEM_CRASH;
+
+        //     Serial.println("[BLE] RESET -> SYSTEM_CRASH");
+
+        //     break;
+
+        // // ----------------------------------------------
+        // // RESUME NORMAL
+        // // ----------------------------------------------
+        // case 'N':
+
+        //     // motorLocked = false;
+        //     systemState = SYSTEM_NORMAL;
+
+        //     Serial.println("[BLE] SYSTEM_NORMAL");
+
+        //     break;
+
+        // ----------------------------------------------
+        // // IDLE / STOP
+        // // ----------------------------------------------
+        // case 'I':
+
+        //     // motorLocked = true;
+        //     systemState = SYSTEM_IDLE;
+
+        //     Serial.println("[BLE] SYSTEM_IDLE");
+
+        //     break;
+
+        // // ----------------------------------------------
+        default:
+
+            Serial.println("[BLE] Unknown command");
+
             break;
     }
 }
 
-// ---------------- OPTIONAL UPDATE ----------------
-void BLECar::update() {
-    // future use (telemetry, heartbeat, etc.)
-}
-
-// ---------------- STATUS ----------------
+// --------------------------------------------------
+// CONNECTION STATUS
+// --------------------------------------------------
 bool BLECar::isConnected() {
     return deviceConnected;
 }
 
+// --------------------------------------------------
+// GLOBAL OBJECT
+// --------------------------------------------------
+BLECar bleCar;
 
-// // How to use
-// #include "BLECar.h"
 
-// BLECar car;
 
-// void setup() {
-//     Serial.begin(115200);
 
-//     car.begin();   // 🚗 start BLE module
-// }
 
-// void loop() {
-//     car.update();  // optional
-// }
+

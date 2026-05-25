@@ -6,9 +6,9 @@
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
+#include "Motor.h"
 
-
-extern Trials;
+extern int Trials;
 // --------------------------------------------------
 // Global BLE pointers
 // --------------------------------------------------
@@ -41,6 +41,14 @@ class CarServerCallbacks : public BLEServerCallbacks {
 
         BLEDevice::startAdvertising();
     }
+
+//     void BLECar::handleReconnect() {
+//     if (!deviceConnected) {
+//         delay(500);
+//         BLEDevice::startAdvertising();
+//         Serial.println("[BLE] Restarting advertising...");
+//     }
+// }
 };
 
 // --------------------------------------------------
@@ -149,8 +157,15 @@ void BLECar::sendTelemetry(
 
     switch (state) {
 
+        case SYSTEM_CHECK:
+            stateStr = "CHECK";
+            break;
         case SYSTEM_IDLE:
             stateStr = "IDLE";
+            break;
+
+        case SYSTEM_READY:
+            stateStr = "READY";
             break;
 
         case SYSTEM_NORMAL:
@@ -171,6 +186,14 @@ void BLECar::sendTelemetry(
 
         case SYSTEM_SAFESTOP:
             stateStr = "SAFESTOP";
+            break;
+        
+        case SYSTEM_EXCEEDED_TRIALS:
+            stateStr = "TRIALS_EXCEEDED";
+            break;
+
+        case SYSTEM_CHECK_FAIL:
+            stateStr = "CHECK_FAIL";
             break;
 
         default:
@@ -215,20 +238,38 @@ void BLECar::handleCommand(char cmd) {
         // EMERGENCY
         // ----------------------------------------------
         case 'P':
-        
+
+            if (systemState != SYSTEM_IDLE)
+                {
+                    Serial.println("[BLE] P ignored (not in IDLE)");
+                    return;
+                }
+
+            if (!selfTestDone)
+            {
+                Serial.println("[BLE] SELF TEST NOT DONE YET");
+                return;
+            }
+
+            if (!selfTestPassed)
+            {
+                Serial.println("[BLE] SELF TEST FAILED → IGNORING P");
+                return;
+            }
+
             systemState = SYSTEM_READY;
-            
             Serial.println("[BLE] SYSTEM_READY");
 
             break;
-        
-        case 'F'
+            
+        case 'F':
 
             Trials++;
             if(Trials>=MaxTrials)
                 {
-                    
+                    systemState = SYSTEM_EXCEEDED_TRIALS;
                 }
+            break;
         
         case 'E':
 
@@ -239,7 +280,19 @@ void BLECar::handleCommand(char cmd) {
             break;
         
 
-        
+        case 'N':
+
+        if (systemState != SYSTEM_READY)
+        {
+            Serial.println("[BLE] N ignored (not in READY)");
+            return;
+        }
+
+        Set_Motor_Speed(250);
+
+        Serial.println("[BLE] Motor start command");
+
+        break;
 
 
         // // ----------------------------------------------

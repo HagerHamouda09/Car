@@ -14,10 +14,10 @@
 #define STBY    32
 
 //Left Channel
-#define PWMA_Channel    0
+#define PWMA_Channel    1
 
 //Right Channel
-#define PWMB_Channel    1
+#define PWMB_Channel    2
 
 #define Frequency   10000
 #define Resolution  8
@@ -32,6 +32,7 @@
 
 //SERVO
 #define SERVO   19
+//#define SERVO_CHANNEL 2
 
 //BUZZER
 #define BUZZER  18
@@ -50,13 +51,22 @@
 #define MaxTrials 5
 
 typedef enum {
+    SYSTEM_CHECK,
     SYSTEM_IDLE,
+    SYSTEM_READY,
     SYSTEM_NORMAL,
     SYSTEM_CRASH,
     SYSTEM_EMERGENCY,
     SYSTEM_OBSTACLESTOP,
-    SYSTEM_READY,
+    SYSTEM_EXCEEDED_TRIALS,
+    SYSTEM_CHECK_FAIL,
     SYSTEM_SAFESTOP//CAR JUST STOPPED NO ISSUES 
 } SYSTEM_CASES;
+
+
+// system check flags
+extern bool selfTestPassed;
+extern bool selfTestDone;
+
 
 #endif

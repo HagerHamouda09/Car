@@ -29,9 +29,11 @@ public:
     void begin();
 
     // Call this every loop — sends telemetry if connected
-    void sendTelemetry(SYSTEM_CASES state, float speed, float distance);
+    // void sendTelemetry(SYSTEM_CASES state, float speed, float distance);
+    void sendTelemetry(SYSTEM_CASES state);
 
     bool isConnected();
+    void handleReconnect();
 
 private:
     bool deviceConnected;

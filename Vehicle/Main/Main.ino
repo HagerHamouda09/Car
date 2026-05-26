@@ -235,6 +235,7 @@
 #include "Ultrasonic.h"
 #include "BLE.h"
 #include "SelfTest.h"
+#include "LED.h"
 
 // SYSTEM_CASES systemState = SYSTEM_IDLE;
 SYSTEM_CASES systemState = SYSTEM_CHECK;
@@ -252,6 +253,7 @@ void setup() {
   Relay_Init();
   Button_Init();
   Buzzer_Init();
+  LED_Init();
   Hall_Init();
   MPU_init();
   Ultrasonic_Init();
@@ -347,15 +349,14 @@ void loop() {
       break;
 
     case SYSTEM_READY:
+    {
 
         Relay_ON();
 
         Calc_Speed();
-
         speed = Get_Speed();
 
-        Serial.print("READY Speed: ");
-        Serial.println(speed);
+ 
 
         if (speed > 0)
         {
@@ -365,14 +366,15 @@ void loop() {
         }
 
         break;
+    }
     case SYSTEM_NORMAL:{
-      Relay_ON();
-      // if (!motorLocked)
-      // {
-      // Set_Motor_Speed(250);
-      // }      
 
-                 motorLocked = false;
+        if (motorLocked)
+        {
+            Set_Motor_Speed(0);
+            break;
+        }
+                 //motorLocked = false;
                 Set_Motor_Speed(250);
 
       // Serial.println(speed);
@@ -382,10 +384,14 @@ void loop() {
       // Serial.println(crash);
       // Serial.println("DO WE HAVE A CRASH??");
 
-      while (!crash && speed != 0 && obs== 3 && systemState == SYSTEM_NORMAL)  {
-          
-                 motorLocked = false;
-                Set_Motor_Speed(250);
+      while (!crash && speed != 0 && obs== 3 && systemState == SYSTEM_NORMAL)
+      {
+       
+                // motorLocked = false;
+                if (!motorLocked)
+                {
+                  Set_Motor_Speed(250);
+                }
 
       obs = Obstacle();
       speed = Get_Speed();
@@ -411,6 +417,11 @@ void loop() {
 
         break;
       }
+       if (motorLocked)
+        {
+            Set_Motor_Speed(0);
+            break;
+        }
      // 1 obstacle
       if (obs != 3)
         ControlSpeed(obs, 1);
@@ -448,6 +459,7 @@ void loop() {
       Set_Motor_Speed(0);
       Relay_Off();
       Buzzer_On();
+      LED_On();
       //INFORM MOBILE THERE IS A CRASH
       //flag to stop loop
       //sleep mode for esp
@@ -466,6 +478,7 @@ void loop() {
       {
         motorLocked = true;
         Buzzer_On();
+        LED_On();
 
         //mafesh obstacle+aw2f (emergecncy)
         if (obs == 3)
@@ -479,5 +492,12 @@ void loop() {
             Set_Servo_Angle(90);
       }
       break;
+
+      case SYSTEM_END_TRIP:
+            // Set_Motor_Speed(0);
+            // motorLocked = true;
+            Relay_Off();
+          break;
   }
 }
+

@@ -41,7 +41,10 @@
 #define RELAY   23
 
 //HALL
-#define HALL    36
+#define HALL   4 
+
+//LED
+#define LED    36
 
 //MPU
 #define SDA     21
@@ -60,6 +63,7 @@ typedef enum {
     SYSTEM_OBSTACLESTOP,
     SYSTEM_EXCEEDED_TRIALS,
     SYSTEM_CHECK_FAIL,
+    SYSTEM_END_TRIP,
     SYSTEM_SAFESTOP//CAR JUST STOPPED NO ISSUES 
 } SYSTEM_CASES;
 

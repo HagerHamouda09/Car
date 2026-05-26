@@ -76,7 +76,7 @@ bool Hall_Test()
     HallPulseCount = 0;
     interrupts();
 
-    delay(300);
+    delay(1200);
 
     Calc_Speed();
     float rpm = Get_Speed();

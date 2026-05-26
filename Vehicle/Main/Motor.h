@@ -1,20 +1,43 @@
 //Motor 
 
 
+// void Motor_Init();
+
+// void MoveForward();
+
+// void MoveBackward();
+
+// void Motor_Stop();
+
+// void TurnLeft();
+
+// void TurnRight();
+
+// void Set_Motor_Speed();
+
+// void SetLeftMotorSpeed();
+
+// void SetRightMotorSpeed();
+
+
+//Motor 
+
+#include "config.h"
+
 void Motor_Init();
 
-void MoveForward();
+void Move_Forward();
 
-void MoveBackward();
+void Move_Backward();
 
 void Motor_Stop();
 
-void TurnLeft();
+void Turn_Left();
 
-void TurnRight();
+void Turn_Right();
 
-void SetMotorSpeed();
+void Set_Motor_Speed(int Speed);
 
-void SetLeftMotorSpeed();
+void Set_Left_Motor_Speed(int Left_Speed);
 
-void SetRightMotorSpeed();
+void Set_Right_Motor_Speed(int Right_Speed);

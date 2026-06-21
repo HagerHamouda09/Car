@@ -1,5 +1,3 @@
-// // 24/5 code (system check+ ) 
-
 #include "config.h"
 #include "Motor.h"
 #include "Relay.h"
@@ -12,7 +10,6 @@
 #include "BLE.h"
 #include "SelfTest.h"
 
-// SYSTEM_CASES systemState = SYSTEM_IDLE;
 SYSTEM_CASES systemState = SYSTEM_CHECK;
 
 bool motorLocked = false;
@@ -42,21 +39,22 @@ void ControlSpeed(int x, int y) {
     Set_Motor_Speed(75);
     Set_Motor_Speed(0);
 
-    // if (Crash_Detect()) {
-    //   systemState = SYSTEM_CRASH;
-    //   return;
-    // }
     if (systemState == SYSTEM_NORMAL)
       {
           if (Crash_Detect())
           {
               systemState = SYSTEM_CRASH;
           }
+          else 
+          {
+          systemState = SYSTEM_SAFESTOP;
+          }
       }
   }
 
   else if (x == 2) {
     motorLocked = true; 
+    systemState = SYSTEM_SAFESTOP;
     for (int i = 1; i <= 5; i++) {
       Serial.print("reducing speed ");
       Set_Motor_Speed(250 - (50 * i));
@@ -64,9 +62,35 @@ void ControlSpeed(int x, int y) {
         systemState = SYSTEM_CRASH;
         return;
       }
+
       delay(1000);
     }
+
+    Set_Motor_Speed(0);
+        Calc_Speed();
+
     delay(2000);
+    Calc_Speed();
+
+
+    // Calc_Speed();
+    // Serial.print("SPPPPPPEEEEEEEEEED Before: ");
+    // Serial.print(Get_Speed());
+    // Set_Motor_Speed(0);
+    // Calc_Speed();
+    // Serial.print("SPPPPPPEEEEEEEEEED After: ");
+    // Serial.print(Get_Speed());
+    // delay(2000);
+    // Calc_Speed();
+    // Serial.print("SPPPPPPEEEEEEEEEED After Delay: ");
+    // Serial.print(Get_Speed());
+    if (systemState == SYSTEM_NORMAL)
+    {
+      systemState = SYSTEM_SAFESTOP;
+    }
+    //delay(10000);
+    
+    
   }
 
 // safe stop variable 
@@ -74,7 +98,7 @@ void ControlSpeed(int x, int y) {
   // 0 is safe
   if (y == 1)
   {
-    Serial.println("OBBBBBBBSTT");
+    Serial.println("obstacle");
     systemState = SYSTEM_OBSTACLESTOP;
 
   }
@@ -88,10 +112,8 @@ void ControlSpeed(int x, int y) {
 
 
 void loop() {
-  //bleCar.handleReconnect();
     delay(10);
 
-  // systemState = SYSTEM_NORMAL;
          Calc_Speed();
 
       int obs = Obstacle();
@@ -99,7 +121,6 @@ void loop() {
       int crash = Crash_Detect();
       int distance = Get_Distance();
   
-  // bleCar.sendTelemetry(systemState, speed, distance);
     bleCar.sendTelemetry(systemState);
 
 
@@ -208,8 +229,9 @@ void loop() {
 
         if (obs == 3)
         {
-          motorLocked = false;
-          systemState = SYSTEM_NORMAL;
+          motorLocked = true;
+          //systemState = SYSTEM_NORMAL;
+          systemState = SYSTEM_SAFESTOP;
         }
 
     break;
@@ -221,7 +243,7 @@ void loop() {
       Serial.print("Case Safestop:");
       Serial.print(speed);
 
-        if (speed > 0)
+        if (!motorLocked)
         {
           motorLocked = false;
         systemState = SYSTEM_NORMAL;
@@ -270,6 +292,18 @@ void loop() {
             // Set_Motor_Speed(0);
             // motorLocked = true;
             Relay_Off();
+            Serial.flush();
+            delay(200);
+            esp_deep_sleep_start();
+
+          break;
+
+      case SYSTEM_MISUSE:
+
+            Serial.flush();
+            delay(200);
+            esp_deep_sleep_start();
+        
           break;
   }
 }

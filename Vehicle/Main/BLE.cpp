@@ -368,13 +368,20 @@ void BLECar::handleCommand(char cmd) {
         case 'T':
 
             systemState = SYSTEM_END_TRIP;
-
-            // motorLocked = true;
-
-            // Set_Motor_Speed(0);
-
+            
             Serial.println("[BLE] END TRIP");
 
+            break;
+
+        //  =============================
+        // Driver misuse
+        // =============================
+
+        case 'A':
+
+            systemState = SYSTEM_MISUSE;
+            Serial.println("[BLE] Driver Misuse");
+           
             break;
 
         default:
@@ -400,16 +407,6 @@ void BLECar::handleSimCommand(char cmd) {
         // =============================
         // MOVE
         // =============================
-        // case 'M':
-
-        //     //motorLocked = false;
-
-        //     Set_Motor_Speed(250);
-
-        //     Serial.println("[SIM] MOVE");
-
-        //     break;
-
             case 'M':
 
         // Serial.print("Before=");

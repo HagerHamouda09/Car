@@ -97,27 +97,42 @@ bool Hall_Test()
 // ===============================
 // BLE TEST
 // ===============================
+// bool BLE_Test()
+// {
+//     Serial.println("[TEST] BLE");
+
+//     unsigned long start = millis();
+//     const unsigned long timeout = 10000; // 10 sec wait
+
+//     while (millis() - start < timeout)
+//     {
+//         if (bleCar.isConnected())
+//         {
+//             Serial.println("[PASS] BLE connected");
+//             return true;
+//         }
+
+//         delay(100);
+//     }
+
+//     Serial.println("[FAIL] BLE not connected (timeout)");
+//     return false;
+// }
+
 bool BLE_Test()
 {
     Serial.println("[TEST] BLE");
 
-    unsigned long start = millis();
-    const unsigned long timeout = 10000; // 10 sec wait
-
-    while (millis() - start < timeout)
+    while (!bleCar.isConnected())
     {
-        if (bleCar.isConnected())
-        {
-            Serial.println("[PASS] BLE connected");
-            return true;
-        }
-
-        delay(100);
+        Serial.println("[WAIT] Waiting for BLE connection...");
+        delay(1000);
     }
 
-    Serial.println("[FAIL] BLE not connected (timeout)");
-    return false;
+    Serial.println("[PASS] BLE connected");
+    return true;
 }
+
 // ===============================
 // MAIN SELF TEST
 // ===============================

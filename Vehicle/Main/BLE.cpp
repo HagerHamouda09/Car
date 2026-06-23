@@ -97,6 +97,8 @@ class CarCharacteristicCallbacks
 // ======================================================
 // SIM CALLBACK
 // ======================================================
+#if SIMULATION_BLE_ENABLED
+
 class SimCallbacks
     : public NimBLECharacteristicCallbacks {
 
@@ -112,6 +114,8 @@ class SimCallbacks
     }
 };
 
+#endif
+
 // ======================================================
 // CONSTRUCTOR
 // ======================================================
@@ -119,6 +123,7 @@ BLECar::BLECar() {
 
     deviceConnected = false;
 }
+
 
 // ======================================================
 // BEGIN

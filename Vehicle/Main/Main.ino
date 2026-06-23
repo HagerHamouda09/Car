@@ -32,6 +32,7 @@ void setup() {
 }
 
 void ControlSpeed(int x, int y) {
+  bool emergencyActive = (systemState == SYSTEM_EMERGENCY);
   if (x == 1) {
     Serial.print("reducing speed suddenly");
        motorLocked = true; 
@@ -54,8 +55,9 @@ void ControlSpeed(int x, int y) {
 
   else if (x == 2) {
     motorLocked = true; 
+if (!emergencyActive)
     systemState = SYSTEM_SAFESTOP;
-    for (int i = 1; i <= 5; i++) {
+      for (int i = 1; i <= 5; i++) {
       Serial.print("reducing speed ");
       Set_Motor_Speed(250 - (50 * i));
       if (Crash_Detect()) {
@@ -86,8 +88,8 @@ void ControlSpeed(int x, int y) {
     // Serial.print(Get_Speed());
     if (systemState == SYSTEM_NORMAL)
     {
-      systemState = SYSTEM_SAFESTOP;
-    }
+if (!emergencyActive)
+    systemState = SYSTEM_SAFESTOP;    }
     //delay(10000);
     
     
@@ -96,7 +98,8 @@ void ControlSpeed(int x, int y) {
 // safe stop variable 
 // driver stopped the car himself (implement(traffic or something))
   // 0 is safe
-  if (y == 1)
+  if (!emergencyActive)
+{  if (y == 1)
   {
     Serial.println("obstacle");
     systemState = SYSTEM_OBSTACLESTOP;
@@ -107,6 +110,7 @@ void ControlSpeed(int x, int y) {
     systemState = SYSTEM_SAFESTOP;
 
   }
+}
 }
 
 
@@ -268,8 +272,8 @@ void loop() {
 
             //Set_Servo_Angle(0);
 
-            Set_Servo_Angle(110);
-      
+      Set_Servo_Angle(160);
+      delay(2000);
       if (Get_Button_State()) 
       {
         motorLocked = true;
@@ -282,15 +286,25 @@ void loop() {
           //obstacle +aw2f basor3a
           //obstacle +aw2f blraha
           ControlSpeed(obs, 1);
-      
+      //Serial.println("we are before servo ");
+      // delay(2000);
+      // Set_Servo_Angle(146);
+      // delay(2000);
+      // Set_Servo_Angle(90);
+      // Set_Servo_Angle(90);
+      //Serial.println("we moved from servo to relay ");
       Relay_Off();
-            Set_Servo_Angle(90);
+            
+
+            
       }
       break;
 
       case SYSTEM_END_TRIP:
             // Set_Motor_Speed(0);
             // motorLocked = true;
+            Set_Servo_Angle(90);
+            delay(1000);
             Relay_Off();
             Serial.flush();
             delay(200);

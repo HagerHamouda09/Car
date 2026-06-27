@@ -218,14 +218,20 @@ void BLECar::begin() {
 // ======================================================
 // TELEMETRY
 // ======================================================
-void BLECar::sendTelemetry(SYSTEM_CASES state) {
-
+void BLECar::sendTelemetry(SYSTEM_CASES state)
+{
     static uint32_t last = 0;
 
     if (millis() - last < TELEMETRY_INTERVAL_MS)
         return;
 
     last = millis();
+
+    // Driver phone:
+    // Don't send anything here anymore (or send your single-letter messages
+    // using sendSystemCheck(), sendCrash(), etc.)
+
+#if SIMULATION_BLE_ENABLED
 
     const char* stateStr;
 
@@ -287,32 +293,45 @@ void BLECar::sendTelemetry(SYSTEM_CASES state) {
              "STATE:%s\n",
              stateStr);
 
-    // Driver phone
-    if (driverConn != 0) {
-
-        pTxCharacteristic->setValue(
-            (uint8_t*)buf,
-            strlen(buf)
-        );
-
-        pTxCharacteristic->notify();
-    }
-
-#if SIMULATION_BLE_ENABLED
-
-    // Simulation phone
     if (simConn != 0) {
 
-        pSimTx->setValue(
-            (uint8_t*)buf,
-            strlen(buf)
-        );
-
+        pSimTx->setValue((uint8_t*)buf, strlen(buf));
         pSimTx->notify();
     }
 
 #endif
 }
+
+
+void BLECar::sendSystemCheck(bool passed)
+{
+    if (!driverConn || pTxCharacteristic == nullptr) return;
+
+    static unsigned long lastSend = 0;
+    if (millis() - lastSend < 1000) return;
+    lastSend = millis();
+
+    const char* msg = passed ? "P\n" : "F\n";
+
+    pTxCharacteristic->setValue((uint8_t*)msg, strlen(msg));
+    pTxCharacteristic->notify();
+}
+
+
+void BLECar::sendCrash()
+{
+    if (!driverConn || pTxCharacteristic == nullptr) return;
+
+    static unsigned long lastSend = 0;
+    if (millis() - lastSend < 1000) return;
+    lastSend = millis();
+
+    const char* msg = "C\n";
+
+    pTxCharacteristic->setValue((uint8_t*)msg, strlen(msg));
+    pTxCharacteristic->notify();
+}
+
 
 // ======================================================
 // DRIVER COMMANDS

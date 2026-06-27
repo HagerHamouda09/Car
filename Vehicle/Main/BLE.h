@@ -25,6 +25,9 @@ public:
     void sendTelemetry(SYSTEM_CASES state);
     void handleReconnect();
     bool isConnected();
+    
+    void sendSystemCheck(bool passed);
+    void sendCrash();
 
     static void handleCommand(char cmd);
 

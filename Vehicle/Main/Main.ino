@@ -135,16 +135,16 @@ void loop() {
       //Need system check so when driver wears the band start reading vitals and send it to mobile 
       delay(500);  // let sensor stabilize
       
-        if (Run_Car_SelfTest())
-        {
-            systemState = SYSTEM_IDLE;
-            bleCar.sendTelemetry(SYSTEM_IDLE); // or send "IDLE"           
-        }
-        else
-        {
-            systemState = SYSTEM_CHECK_FAIL;
-            bleCar.sendTelemetry(SYSTEM_CHECK_FAIL); // or FAIL state
-        }
+      if (Run_Car_SelfTest())
+      {
+          bleCar.sendSystemCheck(true);
+          systemState = SYSTEM_IDLE;
+      }
+      else
+      {
+          bleCar.sendSystemCheck(false);
+          systemState = SYSTEM_CHECK_FAIL;
+      }
       break;
 
     case SYSTEM_READY:
@@ -256,6 +256,8 @@ void loop() {
     break;
 
     case SYSTEM_CRASH:
+      
+      bleCar.sendCrash();
       Set_Motor_Speed(0);
       Relay_Off();
       Buzzer_On();

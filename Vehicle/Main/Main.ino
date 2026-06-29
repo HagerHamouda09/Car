@@ -28,7 +28,7 @@ void setup() {
   Hall_Init();
   MPU_init();
   Ultrasonic_Init();
-  bleCar.begin();
+  ble_begin();
 }
 
 void ControlSpeed(int x, int y) {
@@ -125,7 +125,7 @@ void loop() {
       int crash = Crash_Detect();
       int distance = Get_Distance();
   
-    bleCar.sendTelemetry(systemState);
+    ble_sendData(systemState);
 
 
   switch (systemState) {
@@ -137,19 +137,20 @@ void loop() {
       
       if (Run_Car_SelfTest())
       {
-          bleCar.sendSystemCheck(true);
+          ble_send_systemcheck(true);
           systemState = SYSTEM_IDLE;
+          
       }
       else
       {
-          bleCar.sendSystemCheck(false);
+          ble_send_systemcheck(false);
           systemState = SYSTEM_CHECK_FAIL;
       }
       break;
 
     case SYSTEM_READY:
     {
-
+        
         Relay_ON();
 
         Calc_Speed();
@@ -201,7 +202,7 @@ void loop() {
         Calc_Speed();
 
         // bleCar.sendTelemetry(systemState, speed, distance);
-        bleCar.sendTelemetry(systemState);
+        ble_sendData(systemState);
 
         delay(60);
       }
@@ -257,7 +258,7 @@ void loop() {
 
     case SYSTEM_CRASH:
       
-      bleCar.sendCrash();
+      ble_sendCrash();
       Set_Motor_Speed(0);
       Relay_Off();
       Buzzer_On();
@@ -270,9 +271,8 @@ void loop() {
       break;
 
     case SYSTEM_EMERGENCY:
-          
 
-            //Set_Servo_Angle(0);
+      //Set_Servo_Angle(0);
 
       Set_Servo_Angle(160);
       delay(2000);
@@ -296,8 +296,8 @@ void loop() {
       // Set_Servo_Angle(90);
       //Serial.println("we moved from servo to relay ");
       Relay_Off();
-            
 
+      systemState = SYSTEM_END_TRIP;
             
       }
       break;

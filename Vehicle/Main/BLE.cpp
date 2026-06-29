@@ -90,7 +90,7 @@ class CarCharacteristicCallbacks
         if (v.empty())
             return;
 
-        BLECar::handleCommand(v[0]);
+        ble_handleCommand(v[0]);
     }
 };
 
@@ -110,25 +110,19 @@ class SimCallbacks
         if (v.empty())
             return;
 
-        BLECar::handleSimCommand(v[0]);
+        ble_handleSimCommand(v[0]);
     }
 };
 
 #endif
 
-// ======================================================
-// CONSTRUCTOR
-// ======================================================
-BLECar::BLECar() {
 
-    deviceConnected = false;
-}
 
 
 // ======================================================
 // BEGIN
 // ======================================================
-void BLECar::begin() {
+void ble_begin() {
 
     // =========================
     // INIT
@@ -218,7 +212,7 @@ void BLECar::begin() {
 // ======================================================
 // TELEMETRY
 // ======================================================
-void BLECar::sendTelemetry(SYSTEM_CASES state)
+void ble_sendData(SYSTEM_CASES state)
 {
     static uint32_t last = 0;
 
@@ -303,7 +297,7 @@ void BLECar::sendTelemetry(SYSTEM_CASES state)
 }
 
 
-void BLECar::sendSystemCheck(bool passed)
+void ble_send_systemcheck(bool passed)
 {
     if (!driverConn || pTxCharacteristic == nullptr) return;
 
@@ -318,7 +312,7 @@ void BLECar::sendSystemCheck(bool passed)
 }
 
 
-void BLECar::sendCrash()
+void ble_sendCrash()
 {
     if (!driverConn || pTxCharacteristic == nullptr) return;
 
@@ -336,7 +330,7 @@ void BLECar::sendCrash()
 // ======================================================
 // DRIVER COMMANDS
 // ======================================================
-void BLECar::handleCommand(char cmd) {
+void ble_handleCommand(char cmd) {
 
     if (systemState == SYSTEM_END_TRIP) {
 
@@ -421,7 +415,7 @@ void BLECar::handleCommand(char cmd) {
 // ======================================================
 #if SIMULATION_BLE_ENABLED
 
-void BLECar::handleSimCommand(char cmd) {
+void ble_handleSimCommand(char cmd) {
 
     if (systemState == SYSTEM_END_TRIP)
         return;
@@ -470,18 +464,17 @@ void BLECar::handleSimCommand(char cmd) {
 
 #endif
 
-// ======================================================
-void BLECar::handleReconnect() {
+// // ======================================================
+// void BLECar::handleReconnect() {
 
-    NimBLEDevice::startAdvertising();
-}
+//     NimBLEDevice::startAdvertising();
+// }
 
-// ======================================================
-bool BLECar::isConnected() {
+// // ======================================================
+bool ble_isConnected() {
 
     return (driverConn != 0 ||
             simConn != 0);
 }
 
 // ======================================================
-BLECar bleCar;

@@ -123,7 +123,7 @@ bool BLE_Test()
 {
     Serial.println("[TEST] BLE");
 
-    while (!bleCar.isConnected())
+    while (!ble_isConnected())
     {
         Serial.println("[WAIT] Waiting for BLE connection...");
         delay(1000);

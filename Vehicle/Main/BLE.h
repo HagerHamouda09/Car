@@ -16,30 +16,18 @@
 #define SIM_TX_UUID      "12345678-AAAA-BBBB-CCCC-123456789002"
 #endif
 
-class BLECar {
-
-public:
-    BLECar();
-
-    void begin();
-    void sendTelemetry(SYSTEM_CASES state);
-    void handleReconnect();
-    bool isConnected();
-    
-    void sendSystemCheck(bool passed);
-    void sendCrash();
-
-    static void handleCommand(char cmd);
+    void ble_begin();
+    void ble_sendData(SYSTEM_CASES state);
+    // void handleReconnect();
+    bool ble_isConnected();
+    void ble_send_systemcheck(bool passed);
+    void ble_sendCrash();
+    void ble_handleCommand(char cmd);
 
 #if SIMULATION_BLE_ENABLED
-    static void handleSimCommand(char cmd);
+    void ble_handleSimCommand(char cmd);
 #endif
 
-private:
-    bool deviceConnected;
-};
-
-extern BLECar bleCar;
 
 extern SYSTEM_CASES systemState;
 extern bool selfTestDone;

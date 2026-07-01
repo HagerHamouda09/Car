@@ -12,7 +12,6 @@ void Ultrasonic_Init()
   pinMode(TRIG,OUTPUT);
   pinMode(ECHO,INPUT);
 
-  // extra making sure
   digitalWrite(TRIG,LOW);
 }
 
@@ -28,9 +27,6 @@ float Get_Distance()
   delayMicroseconds(10);
   digitalWrite(TRIG,LOW);
 
-  //measuring the time needed for the sensor to detect the reflected ultrasonic waves
-  //duration in us
-  //either to add timeout or to add an if condition to make sure not working o invalid data
   duration=pulseIn(ECHO,HIGH,30000);
 
   //distance in cm
@@ -38,9 +34,9 @@ float Get_Distance()
   return distance;
 }
 
-int Obstacle(){ //1 <=20 & 2<60 >20 & 3 safe
+int Obstacle()
+{ 
 float distance= Get_Distance();
-// Serial.println(distance);
   if(distance <= 20)
     return 1;
   else if(distance <= 60)

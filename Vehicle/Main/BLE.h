@@ -18,7 +18,6 @@
 
     void ble_begin();
     void ble_sendData(SYSTEM_CASES state);
-    // void handleReconnect();
     bool ble_isConnected();
     void ble_send_systemcheck(bool passed);
     void ble_sendCrash();

@@ -74,23 +74,11 @@ if (!emergencyActive)
     delay(2000);
     Calc_Speed();
 
-
-    // Calc_Speed();
-    // Serial.print("SPPPPPPEEEEEEEEEED Before: ");
-    // Serial.print(Get_Speed());
-    // Set_Motor_Speed(0);
-    // Calc_Speed();
-    // Serial.print("SPPPPPPEEEEEEEEEED After: ");
-    // Serial.print(Get_Speed());
-    // delay(2000);
-    // Calc_Speed();
-    // Serial.print("SPPPPPPEEEEEEEEEED After Delay: ");
-    // Serial.print(Get_Speed());
     if (systemState == SYSTEM_NORMAL)
     {
 if (!emergencyActive)
-    systemState = SYSTEM_SAFESTOP;    }
-    //delay(10000);
+    systemState = SYSTEM_SAFESTOP;  
+    }
     
     
   }
@@ -130,9 +118,7 @@ void loop() {
 
   switch (systemState) {
     case SYSTEM_CHECK:
-    //this delay represents the wait state in the state machine if the vitals were not ok
-      //delay(5000); (will be handled in the mobile )
-      //Need system check so when driver wears the band start reading vitals and send it to mobile 
+    
       delay(500);  // let sensor stabilize
       
       if (Run_Car_SelfTest())
@@ -174,20 +160,10 @@ void loop() {
             Set_Motor_Speed(0);
             break;
         }
-                 //motorLocked = false;
                 Set_Motor_Speed(250);
-
-      // Serial.println(speed);
-      // Serial.println(obs);
-      // Serial.println(Get_Distance());
-      // Serial.println("DO WE HAVE A CRASH??");
-      // Serial.println(crash);
-      // Serial.println("DO WE HAVE A CRASH??");
 
       while (!crash && speed != 0 && obs== 3 && systemState == SYSTEM_NORMAL)
       {
-       
-                // motorLocked = false;
                 if (!motorLocked)
                 {
                   Set_Motor_Speed(250);
@@ -201,7 +177,6 @@ void loop() {
         Serial.print("normal");
         Calc_Speed();
 
-        // bleCar.sendTelemetry(systemState, speed, distance);
         ble_sendData(systemState);
 
         delay(60);
@@ -235,7 +210,6 @@ void loop() {
         if (obs == 3)
         {
           motorLocked = true;
-          //systemState = SYSTEM_NORMAL;
           systemState = SYSTEM_SAFESTOP;
         }
 
@@ -263,16 +237,11 @@ void loop() {
       Relay_Off();
       Buzzer_On();
 
-      //INFORM MOBILE THERE IS A CRASH
-      //flag to stop loop
-      //sleep mode for esp
             motorLocked = true;
 
       break;
 
     case SYSTEM_EMERGENCY:
-
-      //Set_Servo_Angle(0);
 
       Set_Servo_Angle(160);
       delay(2000);
@@ -281,20 +250,14 @@ void loop() {
         motorLocked = true;
         Buzzer_On();
 
-        //mafesh obstacle+aw2f (emergecncy)
+        //No obtacle + Stop  (emergecncy)
         if (obs == 3)
           ControlSpeed(2, 1);
         else
-          //obstacle +aw2f basor3a
-          //obstacle +aw2f blraha
+          //obstacle +stop suddenly
+          //obstacle +stop gradually
           ControlSpeed(obs, 1);
-      //Serial.println("we are before servo ");
-      // delay(2000);
-      // Set_Servo_Angle(146);
-      // delay(2000);
-      // Set_Servo_Angle(90);
-      // Set_Servo_Angle(90);
-      //Serial.println("we moved from servo to relay ");
+
       Relay_Off();
 
       systemState = SYSTEM_END_TRIP;
@@ -303,8 +266,6 @@ void loop() {
       break;
 
       case SYSTEM_END_TRIP:
-            // Set_Motor_Speed(0);
-            // motorLocked = true;
             Set_Servo_Angle(90);
             delay(1000);
             Relay_Off();

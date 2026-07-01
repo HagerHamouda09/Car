@@ -21,6 +21,8 @@
 
 #define Frequency   10000
 #define Resolution  8
+
+
 //Sensor PINS
 
 //ULTRASONIC
@@ -32,7 +34,6 @@
 
 //SERVO
 #define SERVO   19
-//#define SERVO_CHANNEL 2
 
 //BUZZER
 #define BUZZER  18

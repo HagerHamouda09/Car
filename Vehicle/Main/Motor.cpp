@@ -8,14 +8,9 @@ void Motor_Init()
     pinMode(A02,OUTPUT);
     pinMode(B01,OUTPUT);
     pinMode(B02,OUTPUT);
-  
-    // pinMode(PWMA,OUTPUT);
-    // pinMode(PWMB,OUTPUT);
 
     pinMode(STBY,OUTPUT);
 
-    // digitalWrite(PWMA, HIGH);
-    // digitalWrite(PWMB, HIGH);
     digitalWrite(STBY, HIGH);
 
     ledcAttach(PWMA,Frequency,Resolution);

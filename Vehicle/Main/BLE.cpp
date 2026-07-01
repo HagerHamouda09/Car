@@ -52,7 +52,6 @@ class CarServerCallbacks : public NimBLEServerCallbacks {
             Serial.println("[BLE] EXTRA DEVICE IGNORED");
         }
 
-        // IMPORTANT:
         // Keep advertising so second phone can still connect
         NimBLEDevice::startAdvertising();
     }
@@ -220,10 +219,6 @@ void ble_sendData(SYSTEM_CASES state)
         return;
 
     last = millis();
-
-    // Driver phone:
-    // Don't send anything here anymore (or send your single-letter messages
-    // using sendSystemCheck(), sendCrash(), etc.)
 
 #if SIMULATION_BLE_ENABLED
 
@@ -427,13 +422,7 @@ void ble_handleSimCommand(char cmd) {
         // =============================
             case 'M':
 
-        // Serial.print("Before=");
-        // Serial.println(motorLocked);
-
         motorLocked = false;
-
-        // Serial.print("After=");
-        // Serial.println(motorLocked);
 
         Set_Motor_Speed(250);
 
@@ -463,12 +452,6 @@ void ble_handleSimCommand(char cmd) {
 }
 
 #endif
-
-// // ======================================================
-// void BLECar::handleReconnect() {
-
-//     NimBLEDevice::startAdvertising();
-// }
 
 // // ======================================================
 bool ble_isConnected() {

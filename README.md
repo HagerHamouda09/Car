@@ -1,4 +1,3 @@
-### Car Module 
 
 # GuardianDrive – Vehicle Add-On Safety & Control Module
 

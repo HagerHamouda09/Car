@@ -22,6 +22,10 @@ The GuardianDrive Vehicle Add-On Module is an ADAS embedded control unit designe
 
 ---
 
+## State Machine Diagram
+
+<img width="1600" height="1158" alt="image88" src="https://github.com/user-attachments/assets/a2c45c1d-0300-444d-a88a-2a5479e78c1b" />
+
 ## Embedded Control & ADAS Logic
 
 * **Pre-Drive Ignition Interlock:** The car remains immobilized by default via a battery-disconnect relay until the mobile app transmits a `Car Unlock` signal following a validated driver biometric pre-check.

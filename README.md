@@ -19,6 +19,8 @@ The GuardianDrive Vehicle Add-On Module is an ADAS embedded control unit designe
 * **Alert Peripherals:** High-decibel Piezo Buzzer and high-intensity hazard LEDs
 * **Power Regulation:** LM2596HVS step-down buck converter powering logic and motors from dual 18650 Li-ion cells
 
+<img width="316" height="171" alt="image" src="https://github.com/user-attachments/assets/527f95e7-cd96-4faa-b82b-fda75c59a061" />
+
 ---
 
 ## Embedded Control & ADAS Logic

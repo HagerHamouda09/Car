@@ -39,7 +39,7 @@ The GuardianDrive Vehicle Add-On Module is an ADAS embedded control unit designe
 ## Setup & Deployment
 
 1. **Toolchain:** Open the firmware project in PlatformIO or Arduino IDE.
-2. **Configuration:** Verify pin mappings in `pinout.h`:
+2. **Configuration:** Verify pin mappings in `config.h`:
    * `RELAY_PIN`: Power cutoff relay
    * `SERVO_PIN`: Brake pedal actuator servo
    * `TRIG_PIN` / `ECHO_PIN`: Ultrasonic sensor
